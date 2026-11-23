@@ -1,0 +1,15 @@
+{
+  "name": "custom-aod-clock",
+  "version": "1.0.0",
+  "description": "Custom Analog + Digital 30s AOD Clock for Android 16",
+  "scripts": {
+    "build": "echo 'Static build ready'"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/core": "^6.1.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.2"
+  }
+}
