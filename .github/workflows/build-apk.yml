@@ -24,13 +24,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Android SDK (API 36 / Android 16)
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android 16 Build Tools & Platform
-        run: |
-          sdkmanager "platforms;android-36" "build-tools;36.0.0"
-
       - name: Install Capacitor Dependencies & Add Android
         run: |
           npm install
@@ -38,6 +31,7 @@ jobs:
 
       - name: Inject Native AOD Code & Android 16 Permissions
         run: |
+          mkdir -p android/app/src/main/java/com/mehedi/customaod
           cp native-src/MainActivity.java android/app/src/main/java/com/mehedi/customaod/MainActivity.java
           cp native-src/AodService.java android/app/src/main/java/com/mehedi/customaod/AodService.java
 
@@ -62,4 +56,3 @@ jobs:
         with:
           name: Custom-AOD-Clock-Android16
           path: android/app/build/outputs/apk/debug/app-debug.apk
-
