@@ -1,1 +1,65 @@
+name: Build Android 16 Custom AOD APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK (API 36 / Android 16)
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android 16 Build Tools & Platform
+        run: |
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Install Capacitor Dependencies & Add Android
+        run: |
+          npm install
+          npx cap add android
+
+      - name: Inject Native AOD Code & Android 16 Permissions
+        run: |
+          cp native-src/MainActivity.java android/app/src/main/java/com/mehedi/customaod/MainActivity.java
+          cp native-src/AodService.java android/app/src/main/java/com/mehedi/customaod/AodService.java
+
+          sed -i 's/compileSdkVersion = [0-9]*/compileSdkVersion = 36/g' android/variables.gradle
+          sed -i 's/targetSdkVersion = [0-9]*/targetSdkVersion = 36/g' android/variables.gradle
+
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          sed -i 's|<application|<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />\n    <uses-permission android:name="android.permission.WAKE_LOCK" />\n    <application|' $MANIFEST
+          sed -i 's|</application>|    <service android:name=".AodService" android:exported="false" android:foregroundServiceType="specialUse" />\n    </application>|' $MANIFEST
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Build Debug APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Custom-AOD-Clock-Android16
+          path: android/app/build/outputs/apk/debug/app-debug.apk
 
